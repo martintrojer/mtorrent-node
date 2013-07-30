@@ -1,9 +1,71 @@
 (ns mtorrent-node.core
-  (:require [cljs.core.async :as async :refer [<! >! chan close! timeout]]
-            [hiccups.runtime :as hiccupsrt])
-  (:require-macros [cljs.core.async.macros :refer [go alt!]]
-                   [hiccups.core :as hiccups]))
+  (:require [hiccups.runtime :as hiccupsrt]
+            [mtorrent-node.status :as status])
+  (:require-macros [hiccups.core :as hiccups]))
 
+(defn get-version []
+  (let [lt (js/require "./libtorrent/libtorrent")]
+    (str "mtorrent" " 2.0 " (.-version lt))))
+
+(defn include-css [name]
+  [:link {:href (str "css/" name)
+          :type "text/css"
+          :rel "stylesheet"}])
+
+(defn include-js [name]
+  [:link {:href (str "js/" name)
+          :type "text/javascript"}])
+
+(defn header []
+  [:head
+    [:meta {:charset "utf-8"}]
+    [:meta {:name "viewport"
+            :content "width=device-width, initial-scale=1.0"}]
+    [:meta {:description (get-version)}]
+    [:meta {:author "Martin Trojer"}]
+
+    [:title "mtorrent-node"]
+
+    (include-css "bootstrap.min.css")
+    (include-css "mtorrent.css")
+
+    (include-js "jquery-1.10.2.min.js")
+    (include-js "bootstrap.min.js")])
+
+(defn navbar [active]
+  (let [lis (list [:li (when (= :status active) {:class "active"}) [:a {:href "/"} "Status"]]
+                  [:li (when (= :add active) {:class "active"}) [:a {:href "add"} "Add"]]
+                  [:li (when (= :settings active) {:class "active"}) [:a {:href "settings"} "Settings"]])]
+    [:div {:class "navbar navbar-inverse navbar-fixed-top"}
+     [:div.container
+      [:button {:class "navbar-toggle"
+                :type "button"
+                :data-toggle "collapse"
+                :data-target ".nav-collapse"}
+       [:span.icon-bar]
+       [:span.icon-bar]
+       [:span.icon-bar]]
+      [:a.navbar-brand {:href "/"} "mtorrent-node"]
+      [:div {:class "nav-collapse collapse"}
+       [:ul {:class "nav navbar-nav"} lis]]]]))
+
+(defn render-add []
+  [:h1 "add"])
+
+(defn render-settings []
+  [:h1 "settings"])
+
+(defn render-page [active]
+  (hiccups/html
+   (header)
+   [:body
+    (navbar active)
+    [:div.container
+     [:div.mtorrent
+      (condp = active
+        :status (status/render)
+        :add (render-add)
+        :settings (render-settings))]]]))
 
 (defn -main [& args]
 
@@ -23,8 +85,10 @@
         (.use (express/bodyParser))
         (.use (express/methodOverride))
         (.use ((aget express "static") (path/join dirname "public")))
-        (.get "/" (fn [req res] (.send res (hiccups/html [:h1 "Hello"]))))
-        (.get "/foo" (fn [req res] (.send res (hiccups/html [:h1 "Foo"])))))
+        (.get "/" (fn [req res] (.send res (render-page :status))))
+        (.get "/add" (fn [req res] (.send res (render-page :add))))
+        (.get "/settings" (fn [req res] (.send res (render-page :settings))))
+        )
 
     (.listen (http/createServer app) port
              #(println "Server started on port" port))
