@@ -1,6 +1,7 @@
 (ns mtorrent-node.core
   (:require [hiccups.runtime :as hiccupsrt]
-            [mtorrent-node.status :as status])
+            [mtorrent-node.status :as status]
+            [mtorrent-node.add :as add])
   (:require-macros [hiccups.core :as hiccups]))
 
 (defn get-version []
@@ -46,9 +47,6 @@
       [:div {:class "nav-collapse collapse"}
        [:ul {:class "nav navbar-nav"} lis]]]]))
 
-(defn render-add []
-  [:h1 "add"])
-
 (defn render-settings []
   [:h1 "settings"])
 
@@ -63,7 +61,7 @@
      [:div.mtorrent
       (condp = active
         :status (status/render)
-        :add (render-add)
+        :add (add/render)
         :settings (render-settings))]]]))
 
 (defn -main [& args]
@@ -87,6 +85,12 @@
         (.get "/" (fn [req res] (.send res (render-page :status))))
         (.get "/add" (fn [req res] (.send res (render-page :add))))
         (.get "/settings" (fn [req res] (.send res (render-page :settings))))
+        (.post "/magnet" (fn [req res]
+                           (println "magnet:" (.param req "magnet" nil))
+                           (.redirect res "/add")))
+        (.post "/url" (fn [req res]
+                        (println "url:" (.param req "url" nil))
+                        (.redirect res "/add")))
         )
 
     (.listen (http/createServer app) port

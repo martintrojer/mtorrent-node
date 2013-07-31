@@ -1,6 +1,4 @@
-(ns mtorrent-node.status
-  (:require [hiccups.runtime :as hiccupsrt])
-  (:require-macros [hiccups.core :as hiccups]))
+(ns mtorrent-node.status)
 
 (defn get-action-button [type & msgs]
   [:div.btn-toolbar
