@@ -13,24 +13,21 @@
           :rel "stylesheet"}])
 
 (defn include-js [name]
-  [:link {:href (str "js/" name)
-          :type "text/javascript"}])
+  [:script {:src (str "js/" name)
+            :type "text/javascript"}])
 
 (defn header []
   [:head
-    [:meta {:charset "utf-8"}]
-    [:meta {:name "viewport"
+   [:meta {:charset "utf-8"}]
+   [:meta {:name "viewport"
             :content "width=device-width, initial-scale=1.0"}]
-    [:meta {:description (get-version)}]
-    [:meta {:author "Martin Trojer"}]
+   [:meta {:description (get-version)}]
+   [:meta {:author "Martin Trojer"}]
 
-    [:title "mtorrent-node"]
+   [:title "mtorrent-node"]
 
-    (include-css "bootstrap.min.css")
-    (include-css "mtorrent.css")
-
-    (include-js "jquery-1.10.2.min.js")
-    (include-js "bootstrap.min.js")])
+   (include-css "bootstrap.min.css")
+   (include-css "mtorrent.css")])
 
 (defn navbar [active]
   (let [lis (list [:li (when (= :status active) {:class "active"}) [:a {:href "/"} "Status"]]
@@ -59,6 +56,8 @@
   (hiccups/html
    (header)
    [:body
+    (include-js "jquery-1.10.2.min.js")
+    (include-js "bootstrap.min.js")
     (navbar active)
     [:div.container
      [:div.mtorrent
