@@ -1,11 +1,14 @@
 (ns mtorrent-node.libtorrent
   (:require [mtorrent-node.config :as c]))
 
-(defn get-version []
-  (let [lt (js/require "./libtorrent/libtorrent")]
-    (str "mtorrent/" (c/get-config :version) "-" "libtorrent/" (.-version lt))))
+(def lt (js/require "./libtorrent/libtorrent"))
+(def session (atom nil))
+(def torrents (atom {}))
 
-(defn load-session-state [lt session]
+(defn get-version []
+  (str "mtorrent/" (c/get-config :version) "-" "libtorrent/" (.-version lt)))
+
+(defn restore-session-state [session]
   (try
     (let [fs (js/require "fs")
           fd (fs/openSync (c/get-config :session-file) "r")
@@ -17,6 +20,15 @@
     (catch js/Object e
       (println "Unable to restore session state"))))
 
+(defn save-session-state [session]
+  (try
+    (let [fs (js/require "fs")
+          fd (fs/openSync (c/get-config :session-file) "w")]
+      (fs/writeSync fd (.bencode lt (.save_state session)))
+      (println "Saved session state"))
+    (catch js/Object e
+      (println "Unable to save session state"))))
+
 (defn start-extensions [session]
   (.add_extension session "ut_metadata")
   (.add_extension session "ut_pex")
@@ -25,10 +37,72 @@
   ;;(.add_extension session "metadata_transfer")
   )
 
-(defn do-stuff []
+(defn start-dht [session]
+  (doseq [[r p] (c/get-config :dht-routers)]
+    (.add_dht_router session r p))
+  (.start_dht session))
+
+(defn setup-session []
   (let [lt (js/require "./libtorrent/libtorrent")
         s (.-session lt)
-        session (new s)]
-    (load-session-state lt session)
-    (start-extensions session)
-    ))
+        sess (new s)]
+    (restore-session-state sess)
+    (start-extensions sess)
+    (start-dht sess)
+
+    (.listen_on sess (into-array (c/get-config :listen)))
+    ;;(.start_upnp sess)
+    (reset! session sess)))
+
+(defn save-torrent-state [session]
+  ;; TODO
+  )
+
+(defn get-torrent-state [session info-hash]
+  ;; TODO
+  )
+
+(defn teardown-session []
+  (when @session
+    (println "Stopping libtorrent session")
+    (.pause @session)
+    (save-torrent-state @session)
+    (save-session-state @session)
+
+    (reset! session nil)))
+
+(defn create-magnet-restart-file [uri info-hash]
+  (try
+    (let [fs (js/require "fs")
+          fname (str (c/get-config :watch-path) "/" info-hash ".magnet")
+          fd (fs/openSync fname "w")]
+      (fs/writeSync fd uri)
+      (println "Create magnet restart-file" fname))
+    (catch js/Object e
+      (println "Unable to create restart-file" info-hash))))
+
+(defn setup-handle [handle]
+  (.set_max_connections handle (c/get-config :max-connections))
+  (.set_max_uploads handle (c/get-config :max-uploads))
+  ;;(.set_ratio handle (c/get-config :ratio))
+  (.set_upload_limit handle (c/get-config :upload-limit))
+  (.set_download_limit handle (c/get-config :download-limit))
+  (.resolve_countries handle (c/get-config :resolve-countries)))
+
+(defn add-magnet [uri]
+  (when-not ((-> @torrents keys set) uri)
+    (try
+      (let [p {:save_path (c/get-config :save-path)
+               :resume_data (get-torrent-state session "")
+               :paused false
+               :duplicate_is_error false
+               :auto_managed true
+               :url uri}
+            handle (.add_torrent @session p)
+            info-hash (.info_hash handle)]
+        (setup-handle handle)
+        (println "Magnet added" info-hash)
+        (swap! torrents assoc uri handle)
+        (create-magnet-restart-file uri info-hash))
+      (catch js/Object e
+        (println "Error adding manget" uri)))))
