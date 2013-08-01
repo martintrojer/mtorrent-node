@@ -106,3 +106,30 @@
         (create-magnet-restart-file uri info-hash))
       (catch js/Object e
         (println "Error adding manget" uri)))))
+
+(def statuses
+  ["queued for checking"
+   "checking files"
+   "downloading metadata"
+   "downloading"
+   "finished"
+   "seeding"
+   "allocating"
+   "checking resume data"])
+
+(defn get-state []
+  (for [h (vals @torrents)
+        :let [s (.status h)]]
+    {:name (.name h)
+     :hash (str (.info_hash h))
+     ;;:size (try (-> h .get_torrent_info .total_size) (catch js/Object e 0))
+     :status (or (get statuses (.-state s)) "unknown")
+     :progress (* (.-progress s) 100)
+     :down-rate (.-download_rate s)
+     :up-rate (.-upload_rate s)
+     :seeds (.-num_seeds s)
+     :seeds-total (.-list_seeds s)
+     :peers (.-num_peers s)
+     :peers-total (.-list_peers s)
+     ;;:is-paused (.is_paused h)
+     }))

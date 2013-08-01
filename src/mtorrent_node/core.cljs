@@ -101,10 +101,12 @@
     (lt/add-magnet "magnet:?xt=urn:btih:55650db7cbb64f2c0596ecdeca4b5751e361efb5&dn=Suits+S03E03+HDTV+x264-EVOLVE%5Bettv%5D&tr=udp%3A%2F%2Ftracker.publicbt.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%2F&tr=udp%3A%2F%2Ftracker.ccc.de%2F&tr=http%3A%2F%2Ftracker.torrentbay.to%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.istole.it%2F&tr=http%3A%2F%2Fwww.h33t.com%3A3310%2Fannounce&tr=http%3A%2F%2Fcpleft.com%3A2710%2Fannounce&tr=http%3A%2F%2Fputo.me%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce"
                    )
 
-
-    #_(go
+    (go
+     (while true
        (<! (timeout 2000))
-       (lt/teardown-session))
+       ;;(lt/teardown-session)
+       (println (lt/get-state)))
+     )
     ))
 
 (set! *main-cli-fn* -main)

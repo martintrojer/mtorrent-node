@@ -1,4 +1,5 @@
-(ns mtorrent-node.status)
+(ns mtorrent-node.status
+  (:require [mtorrent-node.libtorrent :as lt]))
 
 (defn get-action-button [type & msgs]
   [:div.btn-toolbar
@@ -21,21 +22,22 @@
       [:th "Status"]
       [:th "Progress"]
       [:th "Seeds"]
-      [:th "Leach"]
+      [:th "Peers"]
       [:th "Up"]
       [:th "Down"]
       [:th (get-action-button "btn-danger" ["/" "Pause All"] ["/" "Remove All"])]]]
     [:tbody
-     [:tr
-      [:td "Foo"]
-      [:td "Working"]
-      [:td
-       [:div.progress
-        [:div {:class "progress-bar progress-bar-success"
-               :style "width: 43%;"}]]]
-      [:td "32(2032)"]
-      [:td "54(1023)"]
-      [:td "1.32 kB/s"]
-      [:td "43.2 B/s"]
-      [:td (get-action-button "btn-primary" ["/" "Pause"] ["/" "Remove"])]]]
+     (for [s (lt/get-state)]
+       [:tr
+        [:td (:name s)]
+        [:td (:status s)]
+        [:td
+         [:div.progress
+          [:div {:class "progress-bar progress-bar-success"
+                 :style (str "width: " (:progress s) "%;")}]]]
+        [:td (str (:seeds s) "(" (:seeds-total s) ")")]
+        [:td (str (:peers s) "(" (:peers-total s) ")")]
+        [:td (str (:down-rate s))]
+        [:td (str (:up-rate s))]
+        [:td (get-action-button "btn-primary" ["/" "Pause"] ["/" "Remove"])]])]
     ]])
