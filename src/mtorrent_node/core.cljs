@@ -91,6 +91,16 @@
         (.post "/url" (fn [req res]
                         (println "url:" (.param req "url" nil))
                         (.redirect res "/add")))
+        (.get "/remove_all" (fn [req res]
+                              (.redirect res "/")))
+        (.get "/pause_all" (fn [req res]
+                              (.redirect res "/")))
+        (.get "/remove" (fn [req res]
+                          (println "remove"  (-> req .-query .-id))
+                          (.redirect res "/")))
+        (.get "/pause" (fn [req res]
+                          (println "pause"  (-> req .-query .-id))
+                          (.redirect res "/")))
         )
 
     (.listen (http/createServer app) port
