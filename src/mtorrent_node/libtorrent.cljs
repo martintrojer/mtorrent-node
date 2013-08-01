@@ -8,23 +8,27 @@
 (defn get-version []
   (str "mtorrent/" (c/get-config :version) "-" "libtorrent/" (.-version lt)))
 
+(def units ["B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"])
+
+(defn readable-size [size us]
+  (if (< size 1024)
+    (format "%.1f%s" size (first us))
+    (recur (/ size 1024.0) (rest us))))
+
 (defn restore-session-state [session]
   (try
     (let [fs (js/require "fs")
-          fd (fs/openSync (c/get-config :session-file) "r")
-          buf (js/Buffer. 16384)
-          r (fs/readSync fd buf 0 (.-length buf) 0)]
-      (when (> r 0)
-        (.load_state session (.bdecode lt buf))
+          data (fs/readFileSync (c/get-config :session-file))]
+      (when (> (.-length data) 0)
+        (.load_state session (.bdecode lt data))
         (println "Restored session state")))
     (catch js/Object e
       (println "Unable to restore session state"))))
 
 (defn save-session-state [session]
   (try
-    (let [fs (js/require "fs")
-          fd (fs/openSync (c/get-config :session-file) "w")]
-      (fs/writeSync fd (.bencode lt (.save_state session)))
+    (let [fs (js/require "fs")]
+      (fs/writeFileSync (c/get-config :session-file) (.bencode lt (.save_state session)))
       (println "Saved session state"))
     (catch js/Object e
       (println "Unable to save session state"))))
@@ -43,8 +47,7 @@
   (.start_dht session))
 
 (defn setup-session []
-  (let [lt (js/require "./libtorrent/libtorrent")
-        s (.-session lt)
+  (let [s (.-session lt)
         sess (new s)]
     (restore-session-state sess)
     (start-extensions sess)
@@ -54,11 +57,11 @@
     ;;(.start_upnp sess)
     (reset! session sess)))
 
-(defn save-torrent-state [session]
+(defn save-torrent-resume-data [session]
   ;; TODO
   )
 
-(defn get-torrent-state [session info-hash]
+(defn get-torrent-resume-data [session info-hash]
   ;; TODO
   )
 
@@ -66,7 +69,7 @@
   (when @session
     (println "Stopping libtorrent session")
     (.pause @session)
-    (save-torrent-state @session)
+    (save-torrent-resume-data @session)
     (save-session-state @session)
 
     (reset! session nil)))
@@ -74,9 +77,8 @@
 (defn create-magnet-restart-file [uri info-hash]
   (try
     (let [fs (js/require "fs")
-          fname (str (c/get-config :watch-path) "/" info-hash ".magnet")
-          fd (fs/openSync fname "w")]
-      (fs/writeSync fd uri)
+          fname (str (c/get-config :watch-path) "/" info-hash ".magnet")]
+      (fs/writeFileSync fname uri)
       (println "Create magnet restart-file" fname))
     (catch js/Object e
       (println "Unable to create restart-file" info-hash))))
@@ -89,16 +91,20 @@
   (.set_download_limit handle (c/get-config :download-limit))
   (.resolve_countries handle (c/get-config :resolve-countries)))
 
+(def torrent-params
+  {:save_path (c/get-config :save-path)
+   :paused false
+   :duplicate_is_error false
+   :auto_managed true})
+
 (defn add-magnet [uri]
   (when-not ((-> @torrents keys set) uri)
     (try
-      (let [p {:save_path (c/get-config :save-path)
-               :resume_data (get-torrent-state session "")
-               :paused false
-               :duplicate_is_error false
-               :auto_managed true
-               :url uri}
-            handle (.add_torrent @session p)
+      (let [p (assoc torrent-params
+                ;;:resume_data (get-torrent-resume-data session "")
+                :url uri)
+            _ (println p)
+            handle (.add_torrent @session (clj->js p))
             info-hash (.info_hash handle)]
         (setup-handle handle)
         (println "Magnet added" info-hash)
@@ -106,6 +112,24 @@
         (create-magnet-restart-file uri info-hash))
       (catch js/Object e
         (println "Error adding manget" uri)))))
+
+(defn add-torrent [fname]
+  (when-not ((-> @torrents keys set) fname)
+    (let [fs (js/require "fs")
+          data (fs/readFileSync fname)
+          _ (println "dole")
+          ti (.-torrent_info lt)
+          ti (new ti (.bdecode lt data))
+          _ (println "doff")
+          p (assoc torrent-params :ti ti)
+          handle (.add_torrent @session (clj->js p))
+          _ (println "kinke")
+          info-hash (.info_hash handle)]
+      (setup-handle handle)
+      (println "Torrent added" info-hash)
+      (swap! torrents assoc fname handle))
+    #_(catch js/Object e
+      (println "Error adding torrent" fname))))
 
 (def statuses
   ["queued for checking"
@@ -125,8 +149,8 @@
      ;;:size (try (-> h .get_torrent_info .total_size) (catch js/Object e 0))
      :status (or (get statuses (.-state s)) "unknown")
      :progress (* (.-progress s) 100)
-     :down-rate (.-download_rate s)
-     :up-rate (.-upload_rate s)
+     :down-rate (readable-size (.-download_rate s) units)
+     :up-rate (readable-size (.-upload_rate s) units)
      :seeds (.-num_seeds s)
      :seeds-total (.-list_seeds s)
      :peers (.-num_peers s)

@@ -14,7 +14,6 @@
 
 (defn render []
   [:div
-   [:h1 "status"]
    [:table {:class "table table-hover table-condensed"}
     [:thead
      [:tr
@@ -23,8 +22,8 @@
       [:th "Progress"]
       [:th "Seeds"]
       [:th "Peers"]
-      [:th "Up"]
       [:th "Down"]
+      [:th "Up"]
       [:th (get-action-button "btn-danger" ["/" "Pause All"] ["/" "Remove All"])]]]
     [:tbody
      (for [s (lt/get-state)]
