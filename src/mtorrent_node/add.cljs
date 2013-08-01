@@ -25,6 +25,6 @@
       [:input.form-control {:type "text"
                             :id "urlinput"
                             :name "url"
-                            :placeholder "http://"}]]
+                            :placeholder "http://b0rked"}]]
      [:button.btn {:class "col-lg-1 btn btn-default"
                    :type "submit"} "Submit"]]]])

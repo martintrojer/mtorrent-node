@@ -114,21 +114,18 @@
         (println "Error adding manget" uri)))))
 
 (defn add-torrent [fname]
-  (when-not ((-> @torrents keys set) fname)
-    (let [fs (js/require "fs")
-          data (fs/readFileSync fname)
-          _ (println "dole")
-          ti (.-torrent_info lt)
-          ti (new ti (.bdecode lt data))
-          _ (println "doff")
-          p (assoc torrent-params :ti ti)
-          handle (.add_torrent @session (clj->js p))
-          _ (println "kinke")
-          info-hash (.info_hash handle)]
-      (setup-handle handle)
-      (println "Torrent added" info-hash)
-      (swap! torrents assoc fname handle))
-    #_(catch js/Object e
+  (try
+    (when-not ((-> @torrents keys set) fname)
+      (let [fs (js/require "fs")
+            ti (.-torrent_info lt)
+            ti (new ti fname)
+            p (assoc torrent-params :ti ti)
+            handle (.add_torrent @session (clj->js p))
+            info-hash (.info_hash handle)]
+        (setup-handle handle)
+        (println "Torrent added" info-hash)
+        (swap! torrents assoc fname handle)))
+    (catch js/Object e
       (println "Error adding torrent" fname))))
 
 (def statuses
