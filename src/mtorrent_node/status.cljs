@@ -31,7 +31,8 @@
       [:td "Working"]
       [:td
        [:div.progress
-        [:div.progress-bar {:style "width: 43%;"}]]]
+        [:div {:class "progress-bar progress-bar-success"
+               :style "width: 43%;"}]]]
       [:td "32(2032)"]
       [:td "54(1023)"]
       [:td "1.32 kB/s"]

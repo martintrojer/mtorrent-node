@@ -3,6 +3,8 @@
 /classes
 /checkouts
 /node_modules
+/session
+/watch
 mtorrent.js
 pom.xml
 pom.xml.asc

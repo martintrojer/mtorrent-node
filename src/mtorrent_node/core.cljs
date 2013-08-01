@@ -1,12 +1,9 @@
 (ns mtorrent-node.core
   (:require [hiccups.runtime :as hiccupsrt]
+            [mtorrent-node.libtorrent :as lt]
             [mtorrent-node.status :as status]
             [mtorrent-node.add :as add])
   (:require-macros [hiccups.core :as hiccups]))
-
-(defn get-version []
-  (let [lt (js/require "./libtorrent/libtorrent")]
-    (str "mtorrent" " 2.0 " (.-version lt))))
 
 (defn include-css [name]
   [:link {:href (str "css/" name)
@@ -22,7 +19,7 @@
    [:meta {:charset "utf-8"}]
    [:meta {:name "viewport"
             :content "width=device-width, initial-scale=1.0"}]
-   [:meta {:description (get-version)}]
+   [:meta {:description (lt/get-version)}]
    [:meta {:author "Martin Trojer"}]
 
    [:title "mtorrent-node"]
@@ -95,6 +92,8 @@
 
     (.listen (http/createServer app) port
              #(println "Server started on port" port))
+
+    (lt/do-stuff)
     ))
 
 (set! *main-cli-fn* -main)
