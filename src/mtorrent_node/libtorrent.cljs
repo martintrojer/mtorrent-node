@@ -21,6 +21,10 @@
       (format "%.1f%s" size (first units))
       (recur (/ size 1024.0) (rest units)))))
 
+(defn get-magnet-file-name [info-hash]
+  (let [path (js/require "path")]
+    (path/join (c/get-config :watch-path) (str info-hash ".magnet"))))
+
 ;; ------------------------------------------------------------------
 ;; Torrents
 
@@ -39,7 +43,7 @@
 (defn create-magnet-restart-file [uri info-hash]
   (try
     (let [fs (js/require "fs")
-          fname (str (c/get-config :watch-path) "/" info-hash ".magnet")]
+          fname (get-magnet-file-name info-hash)]
       (fs/writeFileSync fname uri)
       (println "Created magnet restart-file" fname))
     (catch js/Object e
@@ -48,7 +52,7 @@
 (defn remove-manget-restart-file [info-hash]
   (try
     (let [fs (js/require "fs")
-          fname (str (c/get-config :watch-path) "/" info-hash ".magnet")]
+          fname (get-magnet-file-name info-hash)]
       (fs/unlinkSync fname)
       (println "Removed restart-file" fname))
     (catch js/Object e
