@@ -6,16 +6,8 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [hiccups "0.2.0"]]
   :plugins [[lein-cljsbuild "0.3.2"]]
-  :cljsbuild {:builds [{:id "simple"
-                        :source-paths ["src/mtorrent_node"]
+  :cljsbuild {:builds [{:source-paths ["src/mtorrent_node"]
                         :compiler {:output-to "mtorrent.js"
                                    :target :nodejs
                                    :optimizations :simple
-                                   :pretty-print true}}
-                       {:id "adv"
-                        :source-paths ["src/mtorrent_node"]
-                        :compiler {:output-to "mtorrent.js"
-                                   :target :nodejs
-                                   :optimizations :advanced
-                                   :externs ["externs.js"]
-                                   :pretty-print false}}]})
+                                   :pretty-print true}}]})

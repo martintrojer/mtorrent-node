@@ -7,7 +7,7 @@ Hipster cousin of [mtorrent](https://github.com/martintrojer/mtorrent)
 ```
 $ apt-get install libtorrent-rasterbar-dev
 $ npm install
-$ lein cljsbuild once simple
+$ lein cljsbuild once
 ```
 
 ## Usage
