@@ -83,6 +83,7 @@
         (.use (express/bodyParser))
         (.use (express/methodOverride))
         (.use ((aget express "static") (path/join dirname "public")))
+        (.use (express/favicon "public/img/gl.ico"))
 
         (.get "/" (fn [req res] (.send res (render-page :status))))
         (.get "/add" (fn [req res] (.send res (render-page :add))))
