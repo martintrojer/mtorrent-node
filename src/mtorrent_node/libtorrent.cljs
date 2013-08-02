@@ -120,11 +120,13 @@
 
 (defn pause-torrent [info-hash]
   (when-let [h (@torrents info-hash)]
+    (.auto_managed h false)
     (.pause h)
     (println "Paused torrent" info-hash)))
 
 (defn resume-torrent [info-hash]
   (when-let [h (@torrents info-hash)]
+    (.auto_managed h true)
     (.resume h)
     (println "Resumed torrent" info-hash)))
 
