@@ -1,5 +1,6 @@
 {
   "name": "mtorrent-node",
+  "description": "torrent client using libtorrent-rasterbar",
   "author": "Martin Trojer <martin.trojer@gmail.com>",
   "homepage": "https://github.com/martintrojer/mtorrent-node",
   "repository": {
@@ -7,10 +8,11 @@
     "url": "https://github.com/martintrojer/mtorrent-node.git"
   },
   "main": "mtorrent.js",
+  "bin": "mtorrent.js",
   "version": "0.0.1",
   "dependencies": {
     "express": "3.3.4",
-    "node-libtorrent": "0.0.3"
+    "node-libtorrent": "0.0.2"
   },
   "engines": {
     "node": ">= 0.8.0"
