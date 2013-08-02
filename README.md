@@ -12,10 +12,16 @@ $ lein cljsbuild once simple
 
 ## Usage
 
-FIXME
+```
+$ mkdir watch
+$ mkdir session
+$ screen node mtorrent.js
+```
+
+Point your browser to `http://locahost:1337`
 
 ## License
 
-Copyright © 2013 FIXME
+Copyright © 2013 Martin Trojer
 
 Distributed under the Eclipse Public License, the same as Clojure.

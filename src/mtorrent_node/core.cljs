@@ -1,11 +1,9 @@
 (ns mtorrent-node.core
   (:require [hiccups.runtime :as hiccupsrt]
-            [cljs.core.async :as async :refer [<! >! chan close! timeout]]
             [mtorrent-node.libtorrent :as lt]
             [mtorrent-node.status :as status]
             [mtorrent-node.add :as add])
-  (:require-macros [hiccups.core :as hiccups]
-                   [cljs.core.async.macros :as m :refer [go alt!]]))
+  (:require-macros [hiccups.core :as hiccups]))
 
 ;; Page common stuff and routes
 
