@@ -3,6 +3,6 @@
   "version": "0.0.1",
   "dependencies": {
     "express": "3.3.4",
-	 "node-libtorrent": "0.0.2"
+    "node-libtorrent": "0.0.3"
   }
 }
