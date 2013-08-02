@@ -2,7 +2,8 @@
   (:require [hiccups.runtime :as hiccupsrt]
             [mtorrent-node.libtorrent :as lt]
             [mtorrent-node.status :as status]
-            [mtorrent-node.add :as add])
+            [mtorrent-node.add :as add]
+            [mtorrent-node.settings :as settings])
   (:require-macros [hiccups.core :as hiccups]))
 
 ;; Page common stuff and routes
@@ -47,9 +48,6 @@
        [:ul {:class "nav navbar-nav"} lis]]
       [:p.navbar-text (lt/get-version)]]]))
 
-(defn render-settings []
-  [:h1 "settings"])
-
 (defn render-page [active]
   (hiccups/html
    (header)
@@ -62,7 +60,7 @@
       (condp = active
         :status (status/render)
         :add (add/render)
-        :settings (render-settings))]]]))
+        :settings (settings/render))]]]))
 
 (defn -main [& args]
   (println "Starting" (lt/get-version))
