@@ -66,13 +66,16 @@
   ;; TODO
   )
 
+(defn remove-torrent-resume-data [info-hash]
+  ;; TODO
+  )
+
 (defn teardown-session []
   (when @session
     (println "Stopping libtorrent session")
     (.pause @session)
     (save-torrent-resume-data @session)
     (save-session-state @session)
-
     (reset! session nil)))
 
 (defn create-magnet-restart-file [uri info-hash]
@@ -83,6 +86,15 @@
       (println "Create magnet restart-file" fname))
     (catch js/Object e
       (println "Unable to create restart-file" info-hash))))
+
+(defn remove-manget-restart-file [info-hash]
+  (try
+    (let [fs (js/require "fs")
+          fname (str (c/get-config :watch-path) "/" info-hash ".magnet")]
+      (fs/unlinkSync fname)
+      (println "Removed restart-file" fname))
+    (catch js/Object e
+      (println "Unable to remove restart-file" info-hash))))
 
 (defn setup-handle [handle]
   (.set_max_connections handle (c/get-config :max-connections))
@@ -95,40 +107,71 @@
 (def torrent-params
   {:save_path (c/get-config :save-path)
    :paused false
-   :duplicate_is_error false
-   :auto_managed true})
+   :duplicate_is_error true
+   :auto_managed false})
 
 (defn add-magnet [uri]
-  (when-not ((-> @torrents keys set) uri)
-    (try
-      (let [p (assoc torrent-params
-                ;;:resume_data (get-torrent-resume-data session ???)
-                :url uri)
-            handle (.add_torrent @session (clj->js p))
-            info-hash (.info_hash handle)]
-        (setup-handle handle)
-        (println "Magnet added" info-hash)
-        (swap! torrents assoc uri handle)
-        (create-magnet-restart-file uri info-hash))
-      (catch js/Object e
-        (println "Error adding manget" uri)))))
+  (let [info-hash (first (re-seq #"[a-z0-9]{40}" uri))]
+    (when (and info-hash (not (contains? @torrents info-hash)))
+      (try
+        (let [p (assoc torrent-params
+                  ;;:resume_data (get-torrent-resume-data session ???)
+                  :url uri)
+              handle (.add_torrent @session (clj->js p))
+              info-hash (.info_hash handle)]
+          (setup-handle handle)
+          (println "Magnet added" info-hash)
+          (swap! torrents assoc info-hash handle)
+          (create-magnet-restart-file uri info-hash))
+        (catch js/Object e
+          (println "Error adding manget" uri))))))
 
 (defn add-torrent [fname]
   (try
-    (when-not ((-> @torrents keys set) fname)
-      (let [fs (js/require "fs")
-            ti (.-torrent_info lt)
-            ti (new ti fname)
-            p (assoc torrent-params :ti ti
-                     ;;:resume_data (get-torrent-resume-data session ???)
-                     )
-            handle (.add_torrent @session (clj->js p))
-            info-hash (.info_hash handle)]
-        (setup-handle handle)
-        (println "Torrent added" info-hash)
-        (swap! torrents assoc fname handle)))
+    (let [ti (.-torrent_info lt)
+          ti (new ti fname)
+          info-hash (.info_hash ti)]
+      (when (and info-hash (not (contains? @torrents info-hash)))
+        (let [p (assoc torrent-params
+                  ;;:resume_data (get-torrent-resume-data session ???)
+                  :ti ti)
+              handle (.add_torrent @session (clj->js p))
+              info-hash (.info_hash handle)]
+          (setup-handle handle)
+          (println "Torrent added" info-hash)
+          (swap! torrents assoc info-hash handle))))
     (catch js/Object e
       (println "Error adding torrent" fname))))
+
+(defn pause-torrent [info-hash]
+  (when-let [h (@torrents info-hash)]
+    (.pause h)
+    (println "Paused torrent" info-hash)))
+
+(defn resume-torrent [info-hash]
+  (when-let [h (@torrents info-hash)]
+    (.resume h)
+    (println "Resumed torrent" info-hash)))
+
+(defn remove-torrent [info-hash]
+  (when-let [h (@torrents info-hash)]
+    (remove-torrent-resume-data info-hash)
+    (remove-manget-restart-file info-hash)
+    (.remove_torrent @session h)
+    (swap! torrents dissoc info-hash)
+    (println "Removed torrent" info-hash)))
+
+(defn pause-all []
+  (doseq [[ih _] @torrents]
+    (pause-torrent ih)))
+
+(defn resume-all []
+  (doseq [[ih _] @torrents]
+    (resume-torrent ih)))
+
+(defn remove-all []
+  (doseq [[ih _] @torrents]
+    (remove-torrent ih)))
 
 (defn get-status-string [status]
   (let [statuses ["queued for checking"
@@ -139,7 +182,8 @@
                   "seeding"
                   "allocating"
                   "checking resume data"]]
-       (or (get statuses (.-state status)) "unknown")))
+    (if (.-paused status) "paused"
+        (or (get statuses (.-state status)) "unknown"))))
 
 (defn get-state []
   (for [h (vals @torrents)
@@ -158,5 +202,5 @@
      :seeds-total (.-list_seeds s)
      :peers (.-num_peers s)
      :peers-total (.-list_peers s)
-     ;;:is-paused (.is_paused h)
+     :is-paused (.-paused s)
      }))

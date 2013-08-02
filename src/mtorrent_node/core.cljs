@@ -78,30 +78,23 @@
 
     (-> app
         (.set "port" port)
-        (.use (express/logger "dev"))
+        ;; (.use (express/logger "dev"))
         (.use (express/bodyParser))
         (.use (express/methodOverride))
         (.use ((aget express "static") (path/join dirname "public")))
+
         (.get "/" (fn [req res] (.send res (render-page :status))))
         (.get "/add" (fn [req res] (.send res (render-page :add))))
         (.get "/settings" (fn [req res] (.send res (render-page :settings))))
-        (.post "/magnet" (fn [req res]
-                           (lt/add-magnet (.param req "magnet" nil))
-                           (.redirect res "/add")))
-        (.post "/url" (fn [req res]
-                        (println "url:" (.param req "url" nil))
-                        (.redirect res "/add")))
-        (.get "/remove_all" (fn [req res]
-                              (.redirect res "/")))
-        (.get "/pause_all" (fn [req res]
-                              (.redirect res "/")))
-        (.get "/remove" (fn [req res]
-                          (println "remove"  (-> req .-query .-id))
-                          (.redirect res "/")))
-        (.get "/pause" (fn [req res]
-                          (println "pause"  (-> req .-query .-id))
-                          (.redirect res "/")))
-        )
+
+        (.post "/magnet" (fn [req res] (lt/add-magnet (.param req "magnet" nil)) (.redirect res "/add")))
+        (.post "/url" (fn [req res] (println "url:" (.param req "url" nil)) (.redirect res "/add")))
+        (.get "/pause_all" (fn [_ res] (lt/pause-all) (.redirect res "/")))
+        (.get "/resume_all" (fn [_ res] (lt/resume-all) (.redirect res "/")))
+        (.get "/remove_all" (fn [_ res] (lt/remove-all) (.redirect res "/")))
+        (.get "/pause" (fn [req res] (lt/pause-torrent (-> req .-query .-id)) (.redirect res "/")))
+        (.get "/resume" (fn [req res] (lt/resume-torrent (-> req .-query .-id)) (.redirect res "/")))
+        (.get "/remove" (fn [req res] (lt/remove-torrent (-> req .-query .-id)) (.redirect res "/"))))
 
     (.listen (http/createServer app) port
              #(println "Server started on port" port))

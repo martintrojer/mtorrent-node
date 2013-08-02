@@ -27,7 +27,10 @@
       [:th "Peers"]
       [:th "Down"]
       [:th "Up"]
-      [:th (get-action-button "btn-danger" ["/pause_all" "Pause All"] ["/remove_all" "Remove All"])]]]
+      [:th (get-action-button "btn-danger"
+                              ["/pause_all" "Pause All"]
+                              ["/resume_all" "Resume All"]
+                              ["/remove_all" "Remove All"])]]]
     [:tbody
      (for [s (lt/get-state)]
        [:tr
@@ -42,5 +45,8 @@
         [:td (str (:peers s) "(" (:peers-total s) ")")]
         [:td (str (:down-rate s))]
         [:td (str (:up-rate s))]
-        [:td (get-action-button "btn-primary" [(str "/pause?id=" (:hash s)) "Pause"] [(str "/remove?id=" (:hash s)) "Remove"])]])]
+        [:td (get-action-button "btn-primary"
+                                [(str "/pause?id=" (:hash s)) "Pause"]
+                                [(str "/resume?id=" (:hash s)) "Resume"]
+                                [(str "/remove?id=" (:hash s)) "Remove"])]])]
     ]])
