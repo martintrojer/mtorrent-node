@@ -32,7 +32,7 @@
                               ["/resume_all" "Resume All"]
                               ["/remove_all" "Remove All"])]]]
     [:tbody
-     (for [s (lt/get-state)]
+     (for [s (lt/get-torrent-status)]
        [:tr
         [:td (:name s)]
         [:td (:size s)]

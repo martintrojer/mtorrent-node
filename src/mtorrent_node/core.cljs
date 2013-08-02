@@ -7,6 +7,8 @@
   (:require-macros [hiccups.core :as hiccups]
                    [cljs.core.async.macros :as m :refer [go alt!]]))
 
+;; Page common stuff and routes
+
 (defn include-css [name]
   [:link {:href (str "css/" name)
           :type "text/css"
@@ -100,16 +102,10 @@
              #(println "Server started on port" port))
 
     (lt/setup-session)
+    (lt/restart-magnets)
 
     (lt/add-magnet "magnet:?xt=urn:btih:f41989f9797a88505f9e258d5e5d1354c3731a99&dn=ubuntu-13.04-desktop-amd64.iso&tr=udp%3A%2F%2Ftracker.publicbt.com%3A80%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%2F&tr=udp%3A%2F%2Ftracker.ccc.de%2F&tr=http%3A%2F%2Ftracker.torrentbay.to%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.istole.it%2F&tr=http%3A%2F%2Fwww.h33t.com%3A3310%2Fannounce&tr=http%3A%2F%2Fcpleft.com%3A2710%2Fannounce&tr=http%3A%2F%2Fputo.me%3A6969%2Fannounce&tr=http%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce")
     (lt/add-torrent "./u.torrent")
-
-    #_(go
-     (while true
-       (<! (timeout 2000))
-       ;;(lt/teardown-session)
-       (println (lt/get-state)))
-     )
     ))
 
 (set! *main-cli-fn* -main)

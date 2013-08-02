@@ -3,9 +3,14 @@
 
 ;; libtorrent and fs stuff
 
+;; ------------------------------------------------------------------
+
 (def lt (js/require "./libtorrent/libtorrent"))
 (def session (atom nil))
 (def torrents (atom {}))
+
+;; ------------------------------------------------------------------
+;; Helpers
 
 (defn get-version []
   (str "mtorrent/" (c/get-config :version) "-" "libtorrent/" (.-version lt)))
@@ -16,47 +21,8 @@
       (format "%.1f%s" size (first units))
       (recur (/ size 1024.0) (rest units)))))
 
-(defn restore-session-state [session]
-  (try
-    (let [fs (js/require "fs")
-          data (fs/readFileSync (c/get-config :session-file))]
-      (when (> (.-length data) 0)
-        (.load_state session (.bdecode lt data))
-        (println "Restored session state")))
-    (catch js/Object e
-      (println "Unable to restore session state"))))
-
-(defn save-session-state [session]
-  (try
-    (let [fs (js/require "fs")]
-      (fs/writeFileSync (c/get-config :session-file) (.bencode lt (.save_state session)))
-      (println "Saved session state"))
-    (catch js/Object e
-      (println "Unable to save session state"))))
-
-(defn start-extensions [session]
-  (.add_extension session "ut_metadata")
-  (.add_extension session "ut_pex")
-  (.add_extension session "smart_ban")
-  ;;(.add_extension session "lt_trackers")
-  ;;(.add_extension session "metadata_transfer")
-  )
-
-(defn start-dht [session]
-  (doseq [[r p] (c/get-config :dht-routers)]
-    (.add_dht_router session r p))
-  (.start_dht session))
-
-(defn setup-session []
-  (let [s (.-session lt)
-        sess (new s)]
-    (restore-session-state sess)
-    (start-extensions sess)
-    (start-dht sess)
-
-    (.listen_on sess (into-array (c/get-config :listen)))
-    ;;(.start_upnp sess)
-    (reset! session sess)))
+;; ------------------------------------------------------------------
+;; Torrents
 
 (defn save-torrent-resume-data [session]
   ;; TODO
@@ -70,20 +36,12 @@
   ;; TODO
   )
 
-(defn teardown-session []
-  (when @session
-    (println "Stopping libtorrent session")
-    (.pause @session)
-    (save-torrent-resume-data @session)
-    (save-session-state @session)
-    (reset! session nil)))
-
 (defn create-magnet-restart-file [uri info-hash]
   (try
     (let [fs (js/require "fs")
           fname (str (c/get-config :watch-path) "/" info-hash ".magnet")]
       (fs/writeFileSync fname uri)
-      (println "Create magnet restart-file" fname))
+      (println "Created magnet restart-file" fname))
     (catch js/Object e
       (println "Unable to create restart-file" info-hash))))
 
@@ -143,6 +101,19 @@
     (catch js/Object e
       (println "Error adding torrent" fname))))
 
+(defn restart-magnets []
+  (try
+    (println "Restarting magnets")
+    (let [fs (js/require "fs")
+          files (fs/readdirSync (c/get-config :watch-path))]
+      (doseq [f files]
+        (when (re-seq #"magnet" f)
+          (println "Found" f)
+          (let [uri (fs/readFileSync (str (c/get-config :watch-path) "/" f))]
+            (add-magnet (str uri))))))
+    (catch js/Object e
+      (println "Error while restarting magnets"))))
+
 (defn pause-torrent [info-hash]
   (when-let [h (@torrents info-hash)]
     (.pause h)
@@ -185,7 +156,7 @@
     (if (.-paused status) "paused"
         (or (get statuses (.-state status)) "unknown"))))
 
-(defn get-state []
+(defn get-torrent-status []
   (for [h (vals @torrents)
         :let [s (.status h)]]
     {:name (.name h)
@@ -204,3 +175,57 @@
      :peers-total (.-list_peers s)
      :is-paused (.-paused s)
      }))
+
+;; ------------------------------------------------------------------
+;; Session
+
+(defn restore-session-state [session]
+  (try
+    (let [fs (js/require "fs")
+          data (fs/readFileSync (c/get-config :session-file))]
+      (when (> (.-length data) 0)
+        (.load_state session (.bdecode lt data))
+        (println "Restored session state")))
+    (catch js/Object e
+      (println "Unable to restore session state"))))
+
+(defn save-session-state [session]
+  (try
+    (let [fs (js/require "fs")]
+      (fs/writeFileSync (c/get-config :session-file) (.bencode lt (.save_state session)))
+      (println "Saved session state"))
+    (catch js/Object e
+      (println "Unable to save session state"))))
+
+(defn start-extensions [session]
+  (.add_extension session "ut_metadata")
+  (.add_extension session "ut_pex")
+  (.add_extension session "smart_ban")
+  ;;(.add_extension session "lt_trackers")
+  ;;(.add_extension session "metadata_transfer")
+  )
+
+(defn start-dht [session]
+  (doseq [[r p] (c/get-config :dht-routers)]
+    (.add_dht_router session r p))
+  (.start_dht session))
+
+(defn setup-session []
+  (let [s (.-session lt)
+        sess (new s)]
+    (restore-session-state sess)
+    (start-extensions sess)
+    (start-dht sess)
+
+    (.listen_on sess (into-array (c/get-config :listen)))
+    ;;(.start_upnp sess)
+
+    (reset! session sess)))
+
+(defn teardown-session []
+  (when @session
+    (println "Stopping libtorrent session")
+    (.pause @session)
+    (save-torrent-resume-data @session)
+    (save-session-state @session)
+    (reset! session nil)))
