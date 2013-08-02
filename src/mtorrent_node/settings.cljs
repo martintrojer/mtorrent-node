@@ -3,8 +3,4 @@
             [clojure.string :as s]))
 
 (defn render []
-  (s/replace
-   (.stringify js/JSON
-               (clj->js @c/config)
-               js/undefined 2)
-   #"[\n]" "<br/>"))
+  (str @c/config))
