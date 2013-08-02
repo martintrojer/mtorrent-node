@@ -1,8 +1,23 @@
 {
   "name": "mtorrent-node",
+  "author": "Martin Trojer <martin.trojer@gmail.com>",
+  "homepage": "https://github.com/martintrojer/mtorrent-node",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/martintrojer/mtorrent-node.git"
+  },
+  "main": "mtorrent.js",
   "version": "0.0.1",
   "dependencies": {
     "express": "3.3.4",
     "node-libtorrent": "0.0.3"
-  }
+  },
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "keywords": [
+    "libtorrent",
+    "torrents"
+  ],
+  "license": "EPL"
 }
