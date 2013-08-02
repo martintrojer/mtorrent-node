@@ -7,7 +7,7 @@
 
 (def lt (js/require "./libtorrent/libtorrent"))
 (def session (atom nil))
-(def torrents (atom {}))
+(def torrents (atom {}))  ;; cached for handy lookups etc
 
 ;; ------------------------------------------------------------------
 ;; Helpers
@@ -77,7 +77,7 @@
     (when (and info-hash (not (contains? @torrents info-hash)))
       (try
         (let [p (assoc torrent-params
-                  ;;:resume_data (get-torrent-resume-data session ???)
+                  ;;:resume_data (get-torrent-resume-data session info-hash)
                   :url uri)
               handle (.add_torrent @session (clj->js p))
               info-hash (.info_hash handle)]
@@ -95,7 +95,7 @@
           info-hash (.info_hash ti)]
       (when (and info-hash (not (contains? @torrents info-hash)))
         (let [p (assoc torrent-params
-                  ;;:resume_data (get-torrent-resume-data session ???)
+                  ;;:resume_data (get-torrent-resume-data session info-hash)
                   :ti ti)
               handle (.add_torrent @session (clj->js p))
               info-hash (.info_hash handle)]
@@ -161,7 +161,7 @@
         (or (get statuses (.-state status)) "unknown"))))
 
 (defn get-torrent-status []
-  (for [h (vals @torrents)
+  (for [h (.get-torrents @session)   ;; we use "reality" here
         :let [s (.status h)]]
     {:name (.name h)
      :hash (str (.info_hash h))
