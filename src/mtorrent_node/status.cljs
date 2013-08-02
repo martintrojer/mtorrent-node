@@ -1,6 +1,8 @@
 (ns mtorrent-node.status
   (:require [mtorrent-node.libtorrent :as lt]))
 
+;; the status page
+
 (defn get-action-button [type & msgs]
   [:div.btn-toolbar
    [:div.btn-group
@@ -18,6 +20,7 @@
     [:thead
      [:tr
       [:th "Name"]
+      [:th "Size"]
       [:th "Status"]
       [:th "Progress"]
       [:th "Seeds"]
@@ -29,6 +32,7 @@
      (for [s (lt/get-state)]
        [:tr
         [:td (:name s)]
+        [:td (:size s)]
         [:td (:status s)]
         [:td
          [:div.progress

@@ -1,6 +1,8 @@
 (ns mtorrent-node.libtorrent
   (:require [mtorrent-node.config :as c]))
 
+;; libtorrent and fs stuff
+
 (def lt (js/require "./libtorrent/libtorrent"))
 (def session (atom nil))
 (def torrents (atom {}))
@@ -8,12 +10,11 @@
 (defn get-version []
   (str "mtorrent/" (c/get-config :version) "-" "libtorrent/" (.-version lt)))
 
-(def units ["B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"])
-
-(defn readable-size [size us]
-  (if (< size 1024)
-    (format "%.1f%s" size (first us))
-    (recur (/ size 1024.0) (rest us))))
+(defn readable-size [size]
+  (loop [size size, units ["B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]]
+    (if (< size 1024)
+      (format "%.1f%s" size (first units))
+      (recur (/ size 1024.0) (rest units)))))
 
 (defn restore-session-state [session]
   (try
@@ -101,9 +102,8 @@
   (when-not ((-> @torrents keys set) uri)
     (try
       (let [p (assoc torrent-params
-                ;;:resume_data (get-torrent-resume-data session "")
+                ;;:resume_data (get-torrent-resume-data session ???)
                 :url uri)
-            _ (println p)
             handle (.add_torrent @session (clj->js p))
             info-hash (.info_hash handle)]
         (setup-handle handle)
@@ -119,7 +119,9 @@
       (let [fs (js/require "fs")
             ti (.-torrent_info lt)
             ti (new ti fname)
-            p (assoc torrent-params :ti ti)
+            p (assoc torrent-params :ti ti
+                     ;;:resume_data (get-torrent-resume-data session ???)
+                     )
             handle (.add_torrent @session (clj->js p))
             info-hash (.info_hash handle)]
         (setup-handle handle)
@@ -128,26 +130,30 @@
     (catch js/Object e
       (println "Error adding torrent" fname))))
 
-(def statuses
-  ["queued for checking"
-   "checking files"
-   "downloading metadata"
-   "downloading"
-   "finished"
-   "seeding"
-   "allocating"
-   "checking resume data"])
+(defn get-status-string [status]
+  (let [statuses ["queued for checking"
+                  "checking files"
+                  "downloading metadata"
+                  "downloading"
+                  "finished"
+                  "seeding"
+                  "allocating"
+                  "checking resume data"]]
+       (or (get statuses (.-state status)) "unknown")))
 
 (defn get-state []
   (for [h (vals @torrents)
         :let [s (.status h)]]
     {:name (.name h)
      :hash (str (.info_hash h))
-     ;;:size (try (-> h .get_torrent_info .total_size) (catch js/Object e 0))
-     :status (or (get statuses (.-state s)) "unknown")
+     :size (readable-size
+            (if (#{"downloading" "seeding"} (get-status-string s))
+              (-> h .get_torrent_info .total_size)
+              0))
+     :status (get-status-string s)
      :progress (* (.-progress s) 100)
-     :down-rate (readable-size (.-download_rate s) units)
-     :up-rate (readable-size (.-upload_rate s) units)
+     :down-rate (readable-size (.-download_rate s))
+     :up-rate (readable-size (.-upload_rate s))
      :seeds (.-num_seeds s)
      :seeds-total (.-list_seeds s)
      :peers (.-num_peers s)

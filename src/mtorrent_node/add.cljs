@@ -1,5 +1,7 @@
 (ns mtorrent-node.add)
 
+;; the add page
+
 (defn render []
   [:div
    [:form.form-horizontal {:name "magnet"
