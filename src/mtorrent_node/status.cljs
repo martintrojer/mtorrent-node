@@ -12,7 +12,9 @@
      [:span.caret]]
     [:ul.dropdown-menu
      (for [[p m] msgs]
-       [:li [:a {:href p} m]])]]])
+       (if p
+         [:li [:a {:href p} m]]
+         [:li.divider]))]]])
 
 (defn render []
   [:div
@@ -30,6 +32,7 @@
       [:th (get-action-button "btn-danger"
                               ["/pause_all" "Pause All"]
                               ["/resume_all" "Resume All"]
+                              []
                               ["/remove_all" "Remove All"])]]]
     [:tbody
      (for [s (lt/get-torrent-status)]
@@ -48,5 +51,6 @@
         [:td (get-action-button "btn-primary"
                                 [(str "/pause?id=" (:hash s)) "Pause"]
                                 [(str "/resume?id=" (:hash s)) "Resume"]
+                                []
                                 [(str "/remove?id=" (:hash s)) "Remove"])]])]
     ]])

@@ -1,6 +1,8 @@
 (ns mtorrent-node.settings
   (:require [mtorrent-node.config :as c]
-            [clojure.string :as s]))
+            [mtorrent-node.libtorrent :as lt]))
+
+;; TODO - replace with forms and endpoints to update
 
 (defn render []
-  (str @c/config))
+  (str (assoc @c/config :full-version (lt/get-version))))
