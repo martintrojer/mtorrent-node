@@ -39,7 +39,7 @@
         [:td (:status s)]
         [:td
          [:div.progress
-          [:div {:class "progress-bar progress-bar-success"
+          [:div {:class (str "progress-bar" (when (= (:progress s) 100.0) " progress-bar-success"))
                  :style (str "width: " (:progress s) "%;")}]]]
         [:td (str (:seeds s) "(" (:seeds-total s) ")")]
         [:td (str (:peers s) "(" (:peers-total s) ")")]

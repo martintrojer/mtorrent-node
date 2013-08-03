@@ -46,7 +46,7 @@
       [:a.navbar-brand {:href "/"} "mtorrent-node"]
       [:div {:class "nav-collapse collapse"}
        [:ul {:class "nav navbar-nav"} lis]]
-      [:p.navbar-text (lt/get-version)]]]))
+      [:p.navbar-text [:small (lt/get-version)]]]]))
 
 (defn render-page [active]
   (hiccups/html
