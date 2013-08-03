@@ -4,6 +4,7 @@
 
 (def config
   (atom {:version "2.0"
+         :ui-port 1337
          :watch-path "watch"
          :session-file "session/mtorrent_session"
          :lock-file "session/mtorrent_lock"

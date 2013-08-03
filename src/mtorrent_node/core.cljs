@@ -1,5 +1,6 @@
 (ns mtorrent-node.core
   (:require [hiccups.runtime :as hiccupsrt]
+            [mtorrent-node.config :as c]
             [mtorrent-node.libtorrent :as lt]
             [mtorrent-node.status :as status]
             [mtorrent-node.add :as add]
@@ -70,7 +71,7 @@
         path (js/require "path")
         app (express)
         dirname (js* "__dirname")
-        port 1337]
+        port (c/get-config :ui-port)]
 
     (when (= "development" (.get app "env"))
       (.use app (express/errorHandler)))
