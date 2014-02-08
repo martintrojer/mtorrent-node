@@ -7,8 +7,9 @@ Written in [ClojureScript](https://github.com/clojure/clojurescript), running on
 ## Building
 
 ```
-$ apt-get install libtorrent-rasterbar-dev
-$ npm install
+$ vagrant up
+$ vagrant ssh
+$ cd /vagrant
 $ lein cljsbuild once
 ```
 
@@ -21,6 +22,15 @@ $ screen node mtorrent.js
 ```
 
 Point your browser to `http://locahost:1337`
+
+## Docker container
+
+You can put mtorrent-node in a docker container for easy deployment.
+
+```
+$ ./build-container.sh
+$ ./run-container.sh
+```
 
 ## License
 

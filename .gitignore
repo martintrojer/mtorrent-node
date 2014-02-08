@@ -8,6 +8,7 @@
 mtorrent.js
 pom.xml
 pom.xml.asc
+.vagrant
 *.jar
 *.class
 .lein-deps-sum
