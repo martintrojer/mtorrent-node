@@ -8,6 +8,12 @@ apt-get -y install nodejs
 
 # leiningen
 apt-get -y install openjdk-7-jdk
+
+# add-apt-repository -y ppa:webupd8team/java
+# echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections
+# apt-get -y update
+# apt-get -y install oracle-java7-installer
+
 if [ ! -e "/usr/local/bin/lein" ]; then
 		wget -O "/usr/local/bin/lein" https://raw.github.com/technomancy/leiningen/stable/bin/lein
 		chmod 0775 "/usr/local/bin/lein"

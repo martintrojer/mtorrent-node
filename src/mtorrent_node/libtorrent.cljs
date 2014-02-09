@@ -1,5 +1,6 @@
 (ns mtorrent-node.libtorrent
-  (:require [mtorrent-node.config :as c]))
+  (:require [mtorrent-node.config :as c]
+            [goog.string :as gstring]))
 
 ;; libtorrent and fs stuff
 
@@ -18,7 +19,7 @@
 (defn readable-size [size]
   (loop [size size, units ["B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]]
     (if (< size 1024)
-      (format "%.1f%s" size (first units))
+      (gstring/format "%.1f%s" size (first units))
       (recur (/ size 1024.0) (rest units)))))
 
 (defn get-magnet-file-name [info-hash]

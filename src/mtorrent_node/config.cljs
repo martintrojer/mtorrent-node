@@ -5,10 +5,10 @@
 (def config
   (atom {:version "2.0"
          :ui-port 1337
-         :watch-path "watch"
-         :session-file "session/mtorrent_session"
-         :lock-file "session/mtorrent_lock"
-         :save-path "."
+         :watch-path "/data/watch"
+         :session-file "/data/session/mtorrent_session"
+         :lock-file "/data/session/mtorrent_lock"
+         :save-path "/data"
          :dht-routers [["router.bittorrent.com" 6881]
                        ["router.utorrent.com" 6881]
                        ["router.bitcomet.com" 6881]]

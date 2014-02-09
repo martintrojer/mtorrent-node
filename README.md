@@ -10,6 +10,7 @@ Written in [ClojureScript](https://github.com/clojure/clojurescript), running on
 $ vagrant up
 $ vagrant ssh
 $ cd /vagrant
+$ npm install
 $ lein cljsbuild once
 ```
 

@@ -100,8 +100,7 @@
              #(println "Server started on port" port))
 
     (lt/setup-session)
-    (lt/restart-magnets)
-
-    ))
+    (lt/restart-magnets)))
 
 (set! *main-cli-fn* -main)
+(set! *print-fn* (fn [m] (.log js/console m)))
