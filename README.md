@@ -6,13 +6,21 @@ Written in [ClojureScript](https://github.com/clojure/clojurescript), running on
 
 ## Building
 
+Make sure you have [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest) installed.
+
 ```
+$ git submodule init
+$ git submodule update
 $ vagrant up
+$ vagrant reload
 $ vagrant ssh
+$ sudo ./build_libtorrent.sh
 $ cd /vagrant
 $ npm install
 $ lein cljsbuild once
 ```
+
+You may want to change `puppet/modules/dotfiles`
 
 ## Usage
 
