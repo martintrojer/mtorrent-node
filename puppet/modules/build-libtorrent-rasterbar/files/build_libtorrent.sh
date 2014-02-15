@@ -7,3 +7,7 @@ tar zxf libtorrent-rasterbar-$VERSION.tar.gz
 cd libtorrent-rasterbar-$VERSION
 ./configure --prefix=/usr
 make install
+cd /vagrant
+cp /usr/lib/libtorrent-rasterbar.so.7.0.0 .
+strip libtorrent-rasterbar.so.7.0.0
+ln -s libtorrent-rasterbar.so.7.0.0 libtorrent-rasterbar.so.7
