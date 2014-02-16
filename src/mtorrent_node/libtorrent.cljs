@@ -1,5 +1,6 @@
 (ns mtorrent-node.libtorrent
   (:require [mtorrent-node.config :as c]
+            [goog.string.format]
             [goog.string :as gstring]))
 
 ;; libtorrent and fs stuff
