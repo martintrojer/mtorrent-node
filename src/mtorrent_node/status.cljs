@@ -35,7 +35,7 @@
                               []
                               ["/remove_all" "Remove All"])]]]
     [:tbody
-     (for [s (lt/get-torrent-status)]
+     (for [s (sort-by :name (lt/get-torrent-status))]
        [:tr
         [:td (:name s)]
         [:td (:size s)]

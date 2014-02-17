@@ -3,7 +3,7 @@
 ;; (default) configuration
 
 (def config
-  (atom {:version "2.0"
+  (atom {:version "2.1"
          :ui-port 1337
          :watch-path "/data/watch"
          :session-file "/data/session/mtorrent_session"
