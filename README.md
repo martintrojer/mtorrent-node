@@ -9,8 +9,7 @@ Written in [ClojureScript](https://github.com/clojure/clojurescript), running on
 Make sure you have [vagrant-vbguest](https://github.com/dotless-de/vagrant-vbguest) installed.
 
 ```
-$ git submodule init
-$ git submodule update
+$ vagrant box add trusty64 https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box
 $ vagrant up
 $ vagrant reload
 $ vagrant ssh

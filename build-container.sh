@@ -1,6 +1,6 @@
-sudo docker build -t mtorrent-node .
-sudo docker ps -a | head
+sudo docker.io build -t mtorrent-node .
+sudo docker.io ps -a | head
 
 ## export
-# sudo docker export CONTAINER_ID > mtorrent-node.tar
+# sudo docker.io export CONTAINER_ID > mtorrent-node.tar
 # gzip mtorrent-node.tar
