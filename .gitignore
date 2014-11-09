@@ -17,7 +17,7 @@ pom.xml.asc
 .lein-repl-history
 libtorrent-rasterbar-*
 /npm-debug.log
-/libtorrent-rasterbar.so.7
-/libtorrent-rasterbar.so.7.0.0
+/libtorrent-rasterbar.so.8
+/libtorrent-rasterbar.so.8.0.0
 /mtorrent-node.tar.gz
 /mtorrent-node.tar
