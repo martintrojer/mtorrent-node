@@ -75,8 +75,9 @@
    :auto_managed false})
 
 (defn add-magnet [uri]
-  (let [info-hash (first (re-seq #"[a-z0-9]{40}" uri))]
-    (when (and info-hash (not (contains? @torrents info-hash)))
+  (let [info-hash (first (re-seq #"[a-fA-F0-9]{40}" uri))]
+    (println "adding magnet with info-hash" info-hash)
+    (if (and info-hash (not (contains? @torrents info-hash)))
       (try
         (let [p (assoc torrent-params
                   ;;:resume_data (get-torrent-resume-data session info-hash)
@@ -88,7 +89,8 @@
           (swap! torrents assoc info-hash handle)
           (create-magnet-restart-file uri info-hash))
         (catch js/Object e
-          (println "Error adding manget" uri))))))
+          (println "Error adding manget" uri)))
+      (println "didn't add magnet" (keys @torrents)))))
 
 (defn add-torrent [fname]
   (try
